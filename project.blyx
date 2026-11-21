@@ -1,0 +1,31 @@
+use std::cli;
+use console;
+use linnet;
+
+fn main() {
+    let argv = cli_args();
+    let count = args_len(argv);
+    if count == 1 && args_at(argv, 0) == "--help" {
+        println!("Summarize speech-activity intervals from a precomputed frame-level envelope.");
+        println!("Usage: linnet levels threshold gap frame_ms");
+        println!("Vector arguments are comma-separated; use [] for an empty vector.");
+        return;
+    }
+    let mut result = [];
+    if count == 0 {
+        result = linnet_segment([0, 3, 0, 3, 0, 0, 3], 1.0, 1.0, 10.0);
+    } else {
+        if count != 4 { stderr_line("Wrong argument count. Use --help."); process_exit(2); }
+        let levels = console_vector(args_at(argv, 0));
+        let threshold = console_value(args_at(argv, 1));
+        let gap = console_value(args_at(argv, 2));
+        let frame_ms = console_value(args_at(argv, 3));
+        result = linnet_segment(levels, threshold, gap, frame_ms);
+    }
+    if len(result) == 0 { stderr_line("Invalid input for Linnet. See the package input contract."); process_exit(1); }
+    let mut i = 0;
+    while i < len(result) {
+        println!(at(result, i));
+        i += 1;
+    }
+}
